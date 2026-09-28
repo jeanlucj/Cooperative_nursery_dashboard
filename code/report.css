@@ -1,0 +1,71 @@
+/* Cooperative Nursery Report -- styling for the html_document build. */
+
+.main-container {
+  max-width: 1180px;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+h1.title {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+h1.subtitle {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #7b8a8b;
+}
+
+/* Each nursery gets a clear rule above it so sections separate at a glance. */
+h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 2.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid #18bc9c;
+}
+
+/* Year lines: the year sits in its own column so locations line up down the
+   page, and a year with no trials reads as a gap rather than an omission. */
+.years ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.years li {
+  padding: 0.32rem 0.4rem;
+  border-bottom: 1px solid #eef1f2;
+  text-indent: -5.2rem;
+  padding-left: 5.6rem;
+}
+
+.years li:last-child {
+  border-bottom: none;
+}
+
+.years li:nth-child(odd) {
+  background: #fbfcfc;
+}
+
+.years li strong:first-child {
+  display: inline-block;
+  width: 5rem;
+  text-indent: 0;
+  color: #2c3e50;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Floating contents list. */
+#TOC {
+  font-size: 0.86rem;
+}
+
+#TOC .tocify-item {
+  line-height: 1.35;
+  padding: 0.25rem 0.6rem;
+}

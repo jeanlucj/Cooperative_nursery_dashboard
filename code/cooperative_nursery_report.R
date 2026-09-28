@@ -237,13 +237,25 @@ year_lines <- function(trials) {
   tibble::tibble(year = seq(min(by_year$year), max(by_year$year))) |>
     left_join(by_year, by = "year") |>
     mutate(line = if_else(is.na(locations),
-                          paste0("- ", year),
-                          paste0("- ", year, ": ", locations))) |>
+                          paste0("- **", year, "**"),
+                          paste0("- **", year, "**: ", locations))) |>
     pull(line)
 }
 
-#' The markdown section for one nursery, or NULL when T3/Wheat has no trials
-#' carrying its acronym.
+#' GitHub's anchor slug for a markdown heading: lower case, punctuation other
+#' than hyphens dropped, remaining whitespace turned into hyphens.  A dropped
+#' character can leave two spaces and so a double hyphen, which is what GitHub
+#' generates too.
+slugify <- function(heading) {
+  heading |>
+    stringr::str_to_lower() |>
+    stringr::str_remove_all("[^[:alnum:][:space:]-]") |>
+    stringr::str_replace_all("[[:space:]]", "-")
+}
+
+#' One nursery's heading and year lines, or NULL when T3/Wheat has no trials
+#' carrying its acronym.  The heading comes back separately so the table of
+#' contents can link to it.
 nursery_section <- function(nursery, acronym, studies) {
   trials <- trials_for_acronym(acronym, studies)
   lines <- year_lines(trials)
@@ -252,11 +264,14 @@ nursery_section <- function(nursery, acronym, studies) {
   heading <- if (is.na(nursery) || nursery == "") acronym else
     paste0(nursery, " (", acronym, ")")
 
-  c(paste("##", heading), "", lines, "")
+  list(heading = heading, lines = lines)
 }
 
-#' Build the T3/Wheat part of the Cooperative Nursery Report and write it out.
-build_report <- function(report_file = REPORT_FILE, refresh = FALSE) {
+#' Every nursery section, plus the acronyms that matched no trial name.
+#' Returns a list with `sections` (named list of heading/lines), `unmatched`
+#' (character), and `n_trials` (trials available on T3/Wheat).  The Rmd uses
+#' this directly so pandoc can build its own table of contents.
+nursery_sections <- function(refresh = FALSE) {
   ensure_renviron()
 
   nurseries <- wheat_nurseries()
@@ -279,12 +294,29 @@ build_report <- function(report_file = REPORT_FILE, refresh = FALSE) {
             paste(unmatched, collapse = "\n  "))
   }
 
+  list(sections = sections, unmatched = unmatched, n_trials = nrow(studies))
+}
+
+#' Build the T3/Wheat part of the Cooperative Nursery Report as markdown and
+#' write it out.  The HTML site is built from the Rmd instead, which lets
+#' pandoc generate the contents list; this keeps the plain markdown report.
+build_report <- function(report_file = REPORT_FILE, refresh = FALSE) {
+  sections <- nursery_sections(refresh = refresh)$sections
+
+  toc <- purrr::map_chr(sections, \(s) {
+    paste0("- [", s$heading, "](#", slugify(s$heading), ")")
+  })
+
   body <- c(
     "# Cooperative Nursery Report",
     "",
     paste0("T3/Wheat trials, generated ", format(Sys.Date())),
     "",
-    unlist(sections)
+    "## Contents",
+    "",
+    toc,
+    "",
+    purrr::map(sections, \(s) c(paste("##", s$heading), "", s$lines, "")) |> unlist()
   )
 
   dir.create(dirname(report_file), showWarnings = FALSE, recursive = TRUE)
@@ -294,4 +326,5 @@ build_report <- function(report_file = REPORT_FILE, refresh = FALSE) {
   invisible(body)
 }
 
-if (!interactive()) build_report()
+## Only build when run as a script (Rscript), not when sourced from the Rmd.
+if (sys.nframe() == 0 && !interactive()) build_report()

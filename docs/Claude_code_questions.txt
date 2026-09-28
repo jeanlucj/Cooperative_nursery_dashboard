@@ -1,0 +1,2 @@
+[2026-09-28 10:36:39] Could this easily be made into a webpage for github.io?
+[2026-09-28 10:45:06] commit and push.  Does pushing it get the report onto github.io?  Else what other steps are necessary?

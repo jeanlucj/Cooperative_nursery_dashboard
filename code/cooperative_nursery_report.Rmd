@@ -1,0 +1,55 @@
+---
+title: "Cooperative Nursery Report"
+subtitle: "US small grain public nurseries on T3/Wheat"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme:
+      version: 5
+      bootswatch: flatly
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 2
+    self_contained: true
+    css: report.css
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+source(here::here("code", "cooperative_nursery_report.R"))
+report <- nursery_sections()
+```
+
+```{r intro, results = "asis"}
+cat(sprintf(
+  paste0("Trials recorded on [T3/Wheat](%s) for each cooperative nursery in the ",
+         "registry, drawn from %s trials in total. Each nursery lists every year ",
+         "from its first trial to its most recent; a year with no trial is named ",
+         "on its own.\n"),
+  T3_WHEAT_BASE, format(report$n_trials, big.mark = ",")
+))
+```
+
+```{r sections, results = "asis"}
+for (s in report$sections) {
+  cat("\n## ", s$heading, "\n\n", sep = "")
+  cat("::: {.years}\n")
+  cat(s$lines, sep = "\n")
+  cat("\n:::\n")
+}
+```
+
+## Nurseries without matching trials
+
+```{r unmatched, results = "asis"}
+if (length(report$unmatched) == 0) {
+  cat("Every nursery flagged on T3/Wheat had trials carrying its acronym.\n")
+} else {
+  cat("No T3/Wheat trial name contains these acronyms, so they have no section",
+      "above:\n\n")
+  cat(paste0("- `", report$unmatched, "`"), sep = "\n")
+  cat("\n")
+}
+```
